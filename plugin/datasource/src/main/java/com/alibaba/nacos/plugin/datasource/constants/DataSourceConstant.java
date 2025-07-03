@@ -24,6 +24,11 @@ package com.alibaba.nacos.plugin.datasource.constants;
 
 public class DataSourceConstant {
     public static final String MYSQL = "mysql";
-    
+
     public static final String DERBY = "derby";
+
+    /**
+     * Oracle database type constant.
+     */
+    public static final String ORACLE = "oracle";
 }

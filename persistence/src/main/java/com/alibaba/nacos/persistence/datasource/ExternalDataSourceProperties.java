@@ -37,9 +37,13 @@ import static com.alibaba.nacos.common.utils.CollectionUtils.getOrDefault;
  */
 public class ExternalDataSourceProperties {
     
-    private static final String JDBC_DRIVER_NAME = "com.mysql.cj.jdbc.Driver";
-    
-    private static final String TEST_QUERY = "SELECT 1";
+    private static final String MYSQL_DRIVER = "com.mysql.cj.jdbc.Driver";
+
+    private static final String ORACLE_DRIVER = "oracle.jdbc.OracleDriver";
+
+    private static final String MYSQL_TEST_QUERY = "SELECT 1";
+
+    private static final String ORACLE_TEST_QUERY = "SELECT 1 FROM DUAL";
     
     private Integer num;
     
@@ -82,15 +86,24 @@ public class ExternalDataSourceProperties {
             int currentSize = index + 1;
             Preconditions.checkArgument(url.size() >= currentSize, "db.url.%s is null", index);
             DataSourcePoolProperties poolProperties = DataSourcePoolProperties.build(environment);
+            String jdbcUrl = url.get(index).trim();
             if (StringUtils.isEmpty(poolProperties.getDataSource().getDriverClassName())) {
-                poolProperties.setDriverClassName(JDBC_DRIVER_NAME);
+                if (jdbcUrl.startsWith("jdbc:oracle")) {
+                    poolProperties.setDriverClassName(ORACLE_DRIVER);
+                } else {
+                    poolProperties.setDriverClassName(MYSQL_DRIVER);
+                }
             }
-            poolProperties.setJdbcUrl(url.get(index).trim());
+            poolProperties.setJdbcUrl(jdbcUrl);
             poolProperties.setUsername(getOrDefault(user, index, user.get(0)).trim());
             poolProperties.setPassword(getOrDefault(password, index, password.get(0)).trim());
             HikariDataSource ds = poolProperties.getDataSource();
             if (StringUtils.isEmpty(ds.getConnectionTestQuery())) {
-                ds.setConnectionTestQuery(TEST_QUERY);
+                if (jdbcUrl.startsWith("jdbc:oracle")) {
+                    ds.setConnectionTestQuery(ORACLE_TEST_QUERY);
+                } else {
+                    ds.setConnectionTestQuery(MYSQL_TEST_QUERY);
+                }
             }
             
             dataSources.add(ds);
